@@ -1,0 +1,59 @@
+version: '3.7'
+
+services:
+  spark-master:
+    image: bitnami/spark:latest
+    command: bin/spark-class org.apache.spark.deploy.master.Master
+    networks:
+      mynetwork:
+        ipv4_address: 172.18.0.2
+    ports:
+      - "7077:7077"
+      - "4040:4040"
+    environment:
+      - SPARK_MASTER_WEBUI_PORT=4040
+      - SPARK_WORKER_WEBUI_PORT=4040
+    volumes:
+      - C:\cienciadatos:/tmp
+
+  spark-worker-1:
+    image: bitnami/spark:latest
+    command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+    depends_on:
+      - spark-master
+    networks:
+      mynetwork:
+        ipv4_address: 172.18.0.3
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=2g
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_WEBUI_PORT=4040
+    volumes:
+      - C:\cienciadatos:/tmp
+
+  spark-worker-2:
+    image: bitnami/spark:latest
+    command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+    depends_on:
+      - spark-master
+    networks:
+      mynetwork:
+        ipv4_address: 172.18.0.4
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=2g
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_WEBUI_PORT=4040
+    volumes:
+      - C:\cienciadatos:/tmp
+
+networks:
+  mynetwork:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.18.0.0/16
